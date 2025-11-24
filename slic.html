@@ -7,6 +7,13 @@
 <title>SILINT LAKE · SLIC Shadow Serpent</title>
 
 <style>
+  /* PREVENT LONG-PRESS HIGHLIGHT / SELECTION */
+  body, .snake, .segment {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
   body {
     margin: 0;
     height: 100vh;
@@ -169,7 +176,6 @@ document.addEventListener("mouseup", (e) => {
   nudgeSnake(x, y, holdStrength);
   maybeHitSnake(x, y);
 });
-
 </script>
 
 </head>
