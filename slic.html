@@ -74,6 +74,12 @@ let angle = 0;
 let direction = 1;
 let lastTime = null;
 
+/* HOLD FORCE SYSTEM */
+let holding = false;
+let holdStart = 0;
+let holdStrength = 0;
+
+/* ROTATION LOOP */
 function updateSnakeTransform() {
   const snake = document.querySelector(".snake");
   if (!snake) return;
@@ -95,7 +101,9 @@ function animate(timestamp) {
 }
 requestAnimationFrame(animate);
 
-function nudgeSnake(x, y) {
+
+/* NUDGE WITH HOLD STRENGTH */
+function nudgeSnake(x, y, strength = 1) {
   const snake = document.querySelector(".snake");
   if (!snake) return;
 
@@ -110,8 +118,8 @@ function nudgeSnake(x, y) {
   const normX = dx / magnitude;
   const normY = dy / magnitude;
 
-  offsetX -= normX * 20;
-  offsetY -= normY * 20;
+  offsetX -= normX * (20 * strength);
+  offsetY -= normY * (20 * strength);
 
   updateSnakeTransform();
 }
@@ -143,13 +151,25 @@ function makeRipple(x, y) {
   setTimeout(() => r.remove(), 800);
 }
 
-document.addEventListener("click", (e) => {
+/* HOLD + RELEASE LOGIC */
+document.addEventListener("mousedown", (e) => {
+  holding = true;
+  holdStart = Date.now();
+});
+
+document.addEventListener("mouseup", (e) => {
+  if (!holding) return;
+  holding = false;
+
+  holdStrength = Math.min((Date.now() - holdStart) / 600, 4);
   const x = e.clientX;
   const y = e.clientY;
+
   makeRipple(x, y);
-  nudgeSnake(x, y);
+  nudgeSnake(x, y, holdStrength);
   maybeHitSnake(x, y);
 });
+
 </script>
 
 </head>
