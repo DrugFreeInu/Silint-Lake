@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>SILINT LAKE · SLIC Shadow Serpent</title>
+
+<style>
+  /* Full-page gradient background */
+  body {
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    background: linear-gradient(to bottom, #00142a, #002d55, #005b8c, #00a9c9);
+    overflow: hidden;
+  }
+
+  /* Shadow Serpent */
+  .snake {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 900px;
+    height: 900px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    filter: blur(18px);
+    animation: drift 22s linear infinite;
+  }
+
+  .segment {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, #00000000 0%, #000000aa 35%, #000000ff 80%);
+    border-radius: 50%;
+    box-shadow: 0 0 40px 20px #000000cc;
+    animation: pulse 3.5s ease-in-out infinite alternate;
+  }
+
+  .segment:nth-child(1) { top: 0px; left: 360px; }
+  .segment:nth-child(2) { top: 130px; left: 320px; }
+  .segment:nth-child(3) { top: 250px; left: 360px; }
+  .segment:nth-child(4) { top: 380px; left: 310px; }
+  .segment:nth-child(5) { top: 510px; left: 350px; }
+  .segment:nth-child(6) { top: 640px; left: 300px; }
+  .segment:nth-child(7) { top: 760px; left: 340px; }
+
+  @keyframes pulse {
+    from { transform: scale(1); filter: brightness(1); }
+    to   { transform: scale(1.25); filter: brightness(1.4); }
+  }
+
+  @keyframes drift {
+    0%   { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+</style>
+
+</head>
+<body>
+
+<div class="snake">
+  <div class="segment"></div>
+  <div class="segment"></div>
+  <div class="segment"></div>
+  <div class="segment"></div>
+  <div class="segment"></div>
+  <div class="segment"></div>
+  <div class="segment"></div>
+</div>
+
+</body>
+</html>
