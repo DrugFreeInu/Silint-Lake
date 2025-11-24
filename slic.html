@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Permissions-Policy" content="storage-access=()">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 <title>SILINT LAKE · SLIC Shadow Serpent</title>
 
 <style>
-  /* Full-page gradient background */
   body {
     margin: 0;
     height: 100vh;
@@ -16,11 +16,10 @@
     position: relative;
   }
 
-  /* Ripple */
   .ripple {
     position: absolute;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border: 2px solid rgba(255,255,255,0.25);
     border-radius: 50%;
     transform: translate(-50%, -50%);
@@ -29,11 +28,10 @@
   }
 
   @keyframes rippleExpand {
-    from { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
-    to   { opacity: 0;   transform: translate(-50%, -50%) scale(25); }
+    from { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+    to   { opacity: 0;   transform: translate(-50%, -50%) scale(24); }
   }
 
-  /* Shadow Serpent */
   .snake {
     position: absolute;
     top: 50%;
@@ -44,11 +42,7 @@
     pointer-events: none;
     filter: blur(18px);
     animation: drift 22s linear infinite;
-    transition: filter 0.4s ease;
-  }
-
-  .snake.reacted {
-    filter: blur(10px) brightness(1.3);
+    transition: transform 0.25s ease;
   }
 
   .segment {
@@ -81,50 +75,41 @@
 </style>
 
 <script>
-/* SLIC · Silent Lochness Intelligent Creature
-   Full Awareness + Silent Background Timer
-*/
+let offsetX = 0;
+let offsetY = 0;
 
-let slicPresent = false;       
-let slicLastMove = Date.now(); 
-let slicAFK = false;           
-let slicTime = 0;              
+function nudgeSnake(x, y) {
+  const snake = document.querySelector(".snake");
+  const rect = snake.getBoundingClientRect();
+  const centerX = rect.left + rect.width/2;
+  const centerY = rect.top + rect.height/2;
 
-["mousemove","keydown","touchstart"].forEach(evt =>
-  document.addEventListener(evt, () => {
-    slicPresent = true;
-    slicAFK = false;
-    slicLastMove = Date.now();
-  })
-);
+  const dx = x - centerX;
+  const dy = y - centerY;
 
-setInterval(() => {
-  slicTime++;
-  const silence = Date.now() - slicLastMove;
-  slicAFK = silence > 10000;
-}, 1000);
+  const magnitude = Math.sqrt(dx*dx + dy*dy);
+  const normX = dx / magnitude;
+  const normY = dy / magnitude;
 
+  offsetX -= normX * 20;
+  offsetY -= normY * 20;
 
-/* RIPPLES + SLIC REACTION */
+  snake.style.transform =
+    `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+}
+
 function makeRipple(x, y) {
   const r = document.createElement("div");
   r.className = "ripple";
   r.style.left = x + "px";
   r.style.top = y + "px";
   document.body.appendChild(r);
-
   setTimeout(() => r.remove(), 800);
-}
-
-function slicReact() {
-  const s = document.querySelector(".snake");
-  s.classList.add("reacted");
-  setTimeout(() => s.classList.remove("reacted"), 400);
 }
 
 document.addEventListener("click", (e) => {
   makeRipple(e.clientX, e.clientY);
-  slicReact();
+  nudgeSnake(e.clientX, e.clientY);
 });
 </script>
 
