@@ -38,7 +38,6 @@
     to   { opacity: 0;   transform: translate(-50%, -50%) scale(24); }
   }
 
-  /* HOLD BURST */
   .charge-burst {
     position: absolute;
     width: 40px;
@@ -97,8 +96,8 @@ let holding = false;
 let holdStart = 0;
 let burst = null;
 
-/* ⭐ HALF-STEP PERFECT OFFSET */
-const fingerOffsetY = 20;
+/* ⭐ NEW OFFSET (up 5px from last build) */
+const fingerOffsetY = 15;
 
 /* Update SLIC */
 function updateSnakeTransform() {
@@ -107,7 +106,7 @@ function updateSnakeTransform() {
     `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) rotate(${angle}deg)`;
 }
 
-/* Rotation Loop */
+/* Rotation loop */
 function animate(timestamp) {
   if (lastTime === null) lastTime = timestamp;
   const delta = timestamp - lastTime;
@@ -127,7 +126,7 @@ function animate(timestamp) {
 }
 requestAnimationFrame(animate);
 
-/* Nudge */
+/* Nudge logic */
 function nudgeSnake(x, y, s=1) {
   const snake = document.querySelector(".snake");
   const rect = snake.getBoundingClientRect();
