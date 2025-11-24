@@ -96,8 +96,8 @@ let holding = false;
 let holdStart = 0;
 let burst = null;
 
-/* ⭐ NEW OFFSET (up 5px from last build) */
-const fingerOffsetY = 15;
+/* ⭐ NEW OFFSET (moved up ~5px from last build) */
+const fingerOffsetY = 12;
 
 /* Update SLIC */
 function updateSnakeTransform() {
@@ -126,7 +126,7 @@ function animate(timestamp) {
 }
 requestAnimationFrame(animate);
 
-/* Nudge logic */
+/* Nudge */
 function nudgeSnake(x, y, s=1) {
   const snake = document.querySelector(".snake");
   const rect = snake.getBoundingClientRect();
