@@ -1,1 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Silint Lake · White Veil</title>
 
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: #ffffff;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Soft Water Ripple */
+  .ripple {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0,0,0,0.08);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: rippleExpand 0.8s ease-out forwards;
+  }
+
+  @keyframes rippleExpand {
+    from { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+    to   { opacity: 0;   transform: translate(-50%, -50%) scale(20); }
+  }
+</style>
+
+<script>
+function makeRipple(x, y) {
+  const r = document.createElement("div");
+  r.className = "ripple";
+  r.style.left = x + "px";
+  r.style.top = y + "px";
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 800);
+}
+
+function rippleEvent(e) {
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  makeRipple(x, y);
+}
+
+document.addEventListener("click", rippleEvent);
+document.addEventListener("touchstart", rippleEvent);
+</script>
+
+</head>
+<body>
+</body>
+</html>
