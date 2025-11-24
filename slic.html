@@ -7,7 +7,6 @@
 <title>SILINT LAKE · SLIC Shadow Serpent</title>
 
 <style>
-  /* PREVENT LONG-PRESS HIGHLIGHT / SELECTION */
   body, .snake, .segment {
     -webkit-user-select: none;
     -webkit-touch-callout: none;
@@ -39,7 +38,7 @@
     to   { opacity: 0;   transform: translate(-50%, -50%) scale(24); }
   }
 
-  /* HOLD CHARGE BURST */
+  /* HOLD BURST */
   .charge-burst {
     position: absolute;
     width: 40px;
@@ -60,6 +59,9 @@
     transform: translate(-50%, -50%);
     pointer-events: none;
     filter: blur(18px);
+
+    /* 🔥 SMOOTH RELEASE FIX */
+    transition: transform 0.18s ease-out;
   }
 
   .segment {
@@ -93,17 +95,12 @@ let angle = 0;
 let direction = 1;
 let lastTime = null;
 
-/* HOLD SYSTEM + CHARGE BURST */
 let holding = false;
 let holdStart = 0;
 let burst = null;
-let burstX = 0;
-let burstY = 0;
 
-/* UPDATE LOOP */
 function updateSnakeTransform() {
   const snake = document.querySelector(".snake");
-  if (!snake) return;
   snake.style.transform =
     `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) rotate(${angle}deg)`;
 }
@@ -113,14 +110,12 @@ function animate(timestamp) {
   const delta = timestamp - lastTime;
   lastTime = timestamp;
 
-  const speed = 0.01;
-  angle += speed * delta * direction;
+  angle += 0.01 * delta * direction;
   angle %= 360;
 
-  /* Grow burst while holding */
   if (holding && burst) {
-    let holdTime = (Date.now() - holdStart);
-    let scale = Math.min(1 + holdTime / 300, 6); 
+    let t = (Date.now() - holdStart);
+    let scale = Math.min(1 + t / 300, 6);
     burst.style.transform = `translate(-50%, -50%) scale(${scale})`;
   }
 
@@ -129,12 +124,8 @@ function animate(timestamp) {
 }
 requestAnimationFrame(animate);
 
-
-/* NUDGE USING STRENGTH */
-function nudgeSnake(x, y, strength=1) {
+function nudgeSnake(x, y, s=1) {
   const snake = document.querySelector(".snake");
-  if (!snake) return;
-
   const rect = snake.getBoundingClientRect();
   const cx = rect.left + rect.width/2;
   const cy = rect.top + rect.height/2;
@@ -143,16 +134,14 @@ function nudgeSnake(x, y, strength=1) {
   const dy = y - cy;
   const dist = Math.sqrt(dx*dx + dy*dy) || 1;
 
-  offsetX -= (dx/dist) * (20 * strength);
-  offsetY -= (dy/dist) * (20 * strength);
+  offsetX -= (dx/dist) * (20 * s);
+  offsetY -= (dy/dist) * (20 * s);
 
   updateSnakeTransform();
 }
 
 function maybeHitSnake(x, y) {
   const snake = document.querySelector(".snake");
-  if (!snake) return;
-
   const rect = snake.getBoundingClientRect();
   const cx = rect.left + rect.width/2;
   const cy = rect.top + rect.height/2;
@@ -160,11 +149,8 @@ function maybeHitSnake(x, y) {
   const dx = x - cx;
   const dy = y - cy;
   const dist = Math.sqrt(dx*dx + dy*dy);
-  const radius = rect.width/2;
 
-  if (dist <= radius) {
-    direction *= -1;
-  }
+  if (dist <= rect.width/2) direction *= -1;
 }
 
 function makeRipple(x, y) {
@@ -176,17 +162,14 @@ function makeRipple(x, y) {
   setTimeout(() => r.remove(), 800);
 }
 
-/* HOLD + RELEASE LOGIC (with burst) */
 function startHold(x, y) {
   holding = true;
   holdStart = Date.now();
-  burstX = x;
-  burstY = y;
 
   burst = document.createElement("div");
   burst.className = "charge-burst";
-  burst.style.left = burstX + "px";
-  burst.style.top = burstY + "px";
+  burst.style.left = x + "px";
+  burst.style.top = y + "px";
   document.body.appendChild(burst);
 }
 
@@ -194,32 +177,27 @@ function endHold(x, y) {
   if (!holding) return;
   holding = false;
 
-  let holdTime = (Date.now() - holdStart);
+  let holdTime = Date.now() - holdStart;
   let strength = Math.min(holdTime / 600, 4);
 
   makeRipple(x, y);
   nudgeSnake(x, y, strength);
   maybeHitSnake(x, y);
 
-  if (burst) {
-    burst.remove();
-    burst = null;
-  }
+  if (burst) burst.remove();
+  burst = null;
 }
 
-document.addEventListener("mousedown", (e) =>
-  startHold(e.clientX, e.clientY));
+document.addEventListener("mousedown", e => startHold(e.clientX, e.clientY));
+document.addEventListener("mouseup",   e => endHold(e.clientX, e.clientY));
 
-document.addEventListener("mouseup", (e) =>
-  endHold(e.clientX, e.clientY));
-
-document.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
+document.addEventListener("touchstart", e => {
+  let t = e.touches[0];
   startHold(t.clientX, t.clientY);
 });
 
-document.addEventListener("touchend", (e) => {
-  const t = e.changedTouches[0];
+document.addEventListener("touchend", e => {
+  let t = e.changedTouches[0];
   endHold(t.clientX, t.clientY);
 });
 </script>
