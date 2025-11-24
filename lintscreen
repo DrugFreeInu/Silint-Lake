@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SLIC ENTRANCE · 1-SEC GATE</title>
+
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, Arial;
+  }
+
+  /* White & Shadow Cloak */
+  .cloak {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, #ffffff10, #000000ff);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .4s ease;
+  }
+
+  /* Arch Bridge */
+  .arch {
+    width: 220px;
+    height: 120px;
+    border: 3px solid #fff;
+    border-bottom: none;
+    border-radius: 200px 200px 0 0;
+    position: relative;
+    opacity: .2;
+    transition: opacity .3s ease, transform .3s ease;
+  }
+
+  /* Entry Zone Glow */
+  .arch.enter-active {
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #fff, 0 0 40px #fff;
+  }
+
+  /* Enter Button */
+  .enter-btn {
+    position: absolute;
+    bottom: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 28px;
+    background: #fff;
+    color: #000;
+    border-radius: 50px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s ease;
+  }
+
+  .enter-btn:active {
+    transform: translateX(-50%) scale(.95);
+  }
+
+  /* Activated Screen */
+  .granted {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    font-weight: 900;
+    color: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .4s ease;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="cloak" id="cloak"></div>
+
+<div class="arch" id="arch">
+  <button class="enter-btn" id="enterBtn">ENTER</button>
+</div>
+
+<div class="granted" id="granted">ACCESS SLIC</div>
+
+<script>
+  let gateOpen = false;
+  let gateTimer = null;
+
+  const arch = document.getElementById("arch");
+  const cloak = document.getElementById("cloak");
+  const granted = document.getElementById("granted");
+  const btn = document.getElementById("enterBtn");
+
+  btn.onclick = () => {
+    if (!gateOpen) {
+      gateOpen = true;
+      cloak.style.opacity = 1;
+      arch.classList.add("enter-active");
+
+      gateTimer = setTimeout(() => {
+        gateOpen = false;
+        arch.classList.remove("enter-active");
+        cloak.style.opacity = 0;
+      }, 1000); // 1 second SLIC window
+      return;
+    }
+
+    if (gateOpen) {
+      clearTimeout(gateTimer);
+      granted.style.opacity = 1;
+      granted.style.pointerEvents = "auto";
+      arch.classList.remove("enter-active");
+      cloak.style.opacity = 0;
+    }
+  };
+</script>
+
+</body>
+</html>
