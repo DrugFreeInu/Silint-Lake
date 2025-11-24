@@ -41,8 +41,6 @@
     transform: translate(-50%, -50%);
     pointer-events: none;
     filter: blur(18px);
-    animation: drift 22s linear infinite;
-    transition: transform 0.25s ease;
   }
 
   .segment {
@@ -67,35 +65,73 @@
     from { transform: scale(1); filter: brightness(1); }
     to   { transform: scale(1.25); filter: brightness(1.4); }
   }
-
-  @keyframes drift {
-    0%   { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-  }
 </style>
 
 <script>
 let offsetX = 0;
 let offsetY = 0;
+let angle = 0;
+let direction = 1;
+let lastTime = null;
+
+function updateSnakeTransform() {
+  const snake = document.querySelector(".snake");
+  if (!snake) return;
+  snake.style.transform =
+    `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) rotate(${angle}deg)`;
+}
+
+function animate(timestamp) {
+  if (lastTime === null) lastTime = timestamp;
+  const delta = timestamp - lastTime;
+  lastTime = timestamp;
+
+  const speedDegPerMs = 0.01;
+  angle += speedDegPerMs * delta * direction;
+  angle %= 360;
+
+  updateSnakeTransform();
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
 
 function nudgeSnake(x, y) {
   const snake = document.querySelector(".snake");
+  if (!snake) return;
+
   const rect = snake.getBoundingClientRect();
-  const centerX = rect.left + rect.width/2;
-  const centerY = rect.top + rect.height/2;
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
 
   const dx = x - centerX;
   const dy = y - centerY;
+  const magnitude = Math.sqrt(dx * dx + dy * dy) || 1;
 
-  const magnitude = Math.sqrt(dx*dx + dy*dy);
   const normX = dx / magnitude;
   const normY = dy / magnitude;
 
   offsetX -= normX * 20;
   offsetY -= normY * 20;
 
-  snake.style.transform =
-    `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+  updateSnakeTransform();
+}
+
+function maybeHitSnake(x, y) {
+  const snake = document.querySelector(".snake");
+  if (!snake) return;
+
+  const rect = snake.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  const dx = x - centerX;
+  const dy = y - centerY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const radius = rect.width / 2;
+
+  if (dist <= radius) {
+    direction *= -1;
+  }
 }
 
 function makeRipple(x, y) {
@@ -108,8 +144,11 @@ function makeRipple(x, y) {
 }
 
 document.addEventListener("click", (e) => {
-  makeRipple(e.clientX, e.clientY);
-  nudgeSnake(e.clientX, e.clientY);
+  const x = e.clientX;
+  const y = e.clientY;
+  makeRipple(x, y);
+  nudgeSnake(x, y);
+  maybeHitSnake(x, y);
 });
 </script>
 
