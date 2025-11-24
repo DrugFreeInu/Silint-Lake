@@ -97,8 +97,8 @@ let holding = false;
 let holdStart = 0;
 let burst = null;
 
-/* 🔥 NEW DEEPER OFFSET */
-const fingerOffsetY = 25;
+/* ⭐ HALF-STEP PERFECT OFFSET */
+const fingerOffsetY = 20;
 
 /* Update SLIC */
 function updateSnakeTransform() {
@@ -107,6 +107,7 @@ function updateSnakeTransform() {
     `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) rotate(${angle}deg)`;
 }
 
+/* Rotation Loop */
 function animate(timestamp) {
   if (lastTime === null) lastTime = timestamp;
   const delta = timestamp - lastTime;
