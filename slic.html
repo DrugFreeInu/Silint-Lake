@@ -28,8 +28,8 @@
     height: 22px;
     border: 2px solid rgba(255,255,255,0.25);
     border-radius: 50%;
-    pointer-events: none;
     transform: translate(-50%, -50%);
+    pointer-events: none;
     animation: rippleExpand 0.8s ease-out forwards;
   }
 
@@ -38,18 +38,16 @@
     to   { opacity: 0;   transform: translate(-50%, -50%) scale(24); }
   }
 
-  /* CHARGE BURST (now perfectly centered) */
+  /* HOLD BURST */
   .charge-burst {
     position: absolute;
     width: 40px;
     height: 40px;
     background: radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0));
     border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0.1);
     pointer-events: none;
     opacity: 0.6;
-
-    /* no translate — stays exactly where placed */
-    transform: scale(0.1);
   }
 
   .snake {
@@ -62,7 +60,7 @@
     pointer-events: none;
     filter: blur(18px);
 
-    /* smooth glide fix */
+    /* Smooth release */
     transition: transform 0.18s ease-out;
   }
 
@@ -101,13 +99,17 @@ let holding = false;
 let holdStart = 0;
 let burst = null;
 
-/* SLIC TRANSFORM LOOP */
+/* Perfect iOS finger offset */
+const fingerOffsetY = 15;
+
+/* Update SLIC transform */
 function updateSnakeTransform() {
   const snake = document.querySelector(".snake");
   snake.style.transform =
     `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) rotate(${angle}deg)`;
 }
 
+/* Rotation Loop */
 function animate(timestamp) {
   if (lastTime === null) lastTime = timestamp;
   const delta = timestamp - lastTime;
@@ -116,11 +118,10 @@ function animate(timestamp) {
   angle += 0.01 * delta * direction;
   angle %= 360;
 
-  /* grow burst while holding */
   if (holding && burst) {
     let t = (Date.now() - holdStart);
     let scale = Math.min(1 + t / 300, 6);
-    burst.style.transform = `scale(${scale})`;
+    burst.style.transform = `translate(-50%, -50%) scale(${scale})`;
   }
 
   updateSnakeTransform();
@@ -128,7 +129,7 @@ function animate(timestamp) {
 }
 requestAnimationFrame(animate);
 
-/* NUDGE */
+/* Nudge logic */
 function nudgeSnake(x, y, s=1) {
   const snake = document.querySelector(".snake");
   const rect = snake.getBoundingClientRect();
@@ -141,9 +142,10 @@ function nudgeSnake(x, y, s=1) {
 
   offsetX -= (dx/dist) * (20 * s);
   offsetY -= (dy/dist) * (20 * s);
+
+  updateSnakeTransform();
 }
 
-/* HIT CHECK */
 function maybeHitSnake(x, y) {
   const snake = document.querySelector(".snake");
   const rect = snake.getBoundingClientRect();
@@ -157,32 +159,28 @@ function maybeHitSnake(x, y) {
   if (dist <= rect.width/2) direction *= -1;
 }
 
-/* RIPPLE */
 function makeRipple(x, y) {
   const r = document.createElement("div");
   r.className = "ripple";
   r.style.left = x + "px";
-  r.style.top = y + "px";
+  r.style.top = (y + fingerOffsetY) + "px";
   document.body.appendChild(r);
   setTimeout(() => r.remove(), 800);
 }
 
-/* HOLD START — now perfectly centered */
+/* START hold */
 function startHold(x, y) {
   holding = true;
   holdStart = Date.now();
 
   burst = document.createElement("div");
   burst.className = "charge-burst";
-
-  /* center burst exactly under finger */
-  burst.style.left = (x - 20) + "px";
-  burst.style.top = (y - 20) + "px";
-
+  burst.style.left = x + "px";
+  burst.style.top  = (y + fingerOffsetY) + "px";  /* ← Perfect alignment */
   document.body.appendChild(burst);
 }
 
-/* RELEASE */
+/* END hold */
 function endHold(x, y) {
   if (!holding) return;
   holding = false;
@@ -198,15 +196,16 @@ function endHold(x, y) {
   burst = null;
 }
 
-/* MOUSE */
+/* Mouse */
 document.addEventListener("mousedown", e => startHold(e.clientX, e.clientY));
 document.addEventListener("mouseup",   e => endHold(e.clientX, e.clientY));
 
-/* TOUCH */
+/* Touch */
 document.addEventListener("touchstart", e => {
   let t = e.touches[0];
   startHold(t.clientX, t.clientY);
 });
+
 document.addEventListener("touchend", e => {
   let t = e.changedTouches[0];
   endHold(t.clientX, t.clientY);
