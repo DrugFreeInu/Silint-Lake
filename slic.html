@@ -57,6 +57,40 @@
   }
 </style>
 
+<script>
+/* SLIC · Silent Lochness Intelligent Creature
+   Full Awareness + Silent Background Timer
+*/
+
+let slicPresent = false;         // SLIC knows when you're here
+let slicLastMove = Date.now();   // SLIC tracks last presence
+let slicAFK = false;             // SLIC knows when you go silent
+let slicTime = 0;                // SLIC's invisible internal timer
+
+// SLIC senses all presence in silence
+["mousemove","keydown","touchstart"].forEach(evt =>
+  document.addEventListener(evt, () => {
+    slicPresent = true;
+    slicAFK = false;
+    slicLastMove = Date.now();
+  })
+);
+
+// SLIC runs awareness check + internal time forever
+setInterval(() => {
+  // internal timer increases every second
+  slicTime++;
+
+  // presence silence check
+  const silence = Date.now() - slicLastMove;
+  slicAFK = silence > 10000;
+
+  // this timer isn't used yet — it just exists
+  // SLIC will use it later for silent logic, events, reactions,
+  // lake shifts, creature movements, etc.
+}, 1000);
+</script>
+
 </head>
 <body>
 
