@@ -39,6 +39,18 @@
     to   { opacity: 0;   transform: translate(-50%, -50%) scale(24); }
   }
 
+  /* HOLD CHARGE BURST */
+  .charge-burst {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0));
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0.1);
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
   .snake {
     position: absolute;
     top: 50%;
@@ -81,9 +93,12 @@ let angle = 0;
 let direction = 1;
 let lastTime = null;
 
-/* HOLD SYSTEM – FIXED */
+/* HOLD SYSTEM + CHARGE BURST */
 let holding = false;
 let holdStart = 0;
+let burst = null;
+let burstX = 0;
+let burstY = 0;
 
 /* UPDATE LOOP */
 function updateSnakeTransform() {
@@ -101,6 +116,13 @@ function animate(timestamp) {
   const speed = 0.01;
   angle += speed * delta * direction;
   angle %= 360;
+
+  /* Grow burst while holding */
+  if (holding && burst) {
+    let holdTime = (Date.now() - holdStart);
+    let scale = Math.min(1 + holdTime / 300, 6); 
+    burst.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  }
 
   updateSnakeTransform();
   requestAnimationFrame(animate);
@@ -121,11 +143,8 @@ function nudgeSnake(x, y, strength=1) {
   const dy = y - cy;
   const dist = Math.sqrt(dx*dx + dy*dy) || 1;
 
-  const nx = dx / dist;
-  const ny = dy / dist;
-
-  offsetX -= nx * (20 * strength);
-  offsetY -= ny * (20 * strength);
+  offsetX -= (dx/dist) * (20 * strength);
+  offsetY -= (dy/dist) * (20 * strength);
 
   updateSnakeTransform();
 }
@@ -141,7 +160,6 @@ function maybeHitSnake(x, y) {
   const dx = x - cx;
   const dy = y - cy;
   const dist = Math.sqrt(dx*dx + dy*dy);
-
   const radius = rect.width/2;
 
   if (dist <= radius) {
@@ -158,47 +176,51 @@ function makeRipple(x, y) {
   setTimeout(() => r.remove(), 800);
 }
 
-/* HOLD + RELEASE FIXED */
-document.addEventListener("mousedown", (e) => {
+/* HOLD + RELEASE LOGIC (with burst) */
+function startHold(x, y) {
   holding = true;
   holdStart = Date.now();
-});
+  burstX = x;
+  burstY = y;
 
-document.addEventListener("mouseup", (e) => {
-  if (!holding) return;
-  holding = false;
+  burst = document.createElement("div");
+  burst.className = "charge-burst";
+  burst.style.left = burstX + "px";
+  burst.style.top = burstY + "px";
+  document.body.appendChild(burst);
+}
 
-  let holdTime = (Date.now() - holdStart);
-  let strength = Math.min(holdTime / 600, 4);  /* max charge */
-
-  const x = e.clientX;
-  const y = e.clientY;
-
-  makeRipple(x, y);
-  nudgeSnake(x, y, strength);
-  maybeHitSnake(x, y);
-});
-
-/* MOBILE HOLD SUPPORT */
-document.addEventListener("touchstart", (e) => {
-  holding = true;
-  holdStart = Date.now();
-});
-
-document.addEventListener("touchend", (e) => {
+function endHold(x, y) {
   if (!holding) return;
   holding = false;
 
   let holdTime = (Date.now() - holdStart);
   let strength = Math.min(holdTime / 600, 4);
 
-  const touch = e.changedTouches[0];
-  const x = touch.clientX;
-  const y = touch.clientY;
-
   makeRipple(x, y);
   nudgeSnake(x, y, strength);
   maybeHitSnake(x, y);
+
+  if (burst) {
+    burst.remove();
+    burst = null;
+  }
+}
+
+document.addEventListener("mousedown", (e) =>
+  startHold(e.clientX, e.clientY));
+
+document.addEventListener("mouseup", (e) =>
+  endHold(e.clientX, e.clientY));
+
+document.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  startHold(t.clientX, t.clientY);
+});
+
+document.addEventListener("touchend", (e) => {
+  const t = e.changedTouches[0];
+  endHold(t.clientX, t.clientY);
 });
 </script>
 
