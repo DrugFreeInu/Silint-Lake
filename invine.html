@@ -3,17 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>INVINE · Sender / Receiver (Random Leaf)</title>
+<title>INVINE · Live Feed</title>
 
 <style>
   body {
     margin: 0;
     height: 100vh;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     background: #05070b;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #fff;
   }
 
   .invine-row {
@@ -22,6 +24,7 @@
     align-items: center;
     justify-content: center;
     position: relative;
+    margin-bottom: 40px;
   }
 
   .invine-svg {
@@ -38,6 +41,10 @@
     stroke-linejoin: round;
   }
 
+  .mirror {
+    transform: scaleX(-1);
+  }
+
   .stem {
     position: absolute;
     width: 0;
@@ -47,127 +54,87 @@
     opacity: 0.9;
   }
 
-  /* POPUP */
-  #popup {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
+  #sender-container {
     display: none;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #popup-box {
-    background: #111;
-    padding: 20px;
-    width: 260px;
-    border-radius: 12px;
-    display: flex;
     flex-direction: column;
-    gap: 12px;
-    border: 1px solid #444;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
   }
 
-  #popup-input {
-    padding: 8px;
+  #sender-input {
+    padding: 10px;
+    width: 260px;
     border: 1px solid #666;
     background: #000;
     color: #fff;
     border-radius: 6px;
   }
 
-  #close-btn {
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    background: #444;
+  #receiver-live {
     color: #fff;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    min-height: 20px;
   }
 </style>
 </head>
 <body>
 
 <div class="invine-row">
-
   <div class="stem"></div>
 
-  <!-- LEFT PETAL = SENDER -->
+  <!-- LEFT = SENDER -->
   <svg id="left" class="invine-svg" viewBox="0 0 210 140">
     <path class="invine-loop"
-      d="M 25 95
-         C 15 80, 15 60, 35 50
-         C 70 35, 140 35, 175 50
-         C 195 60, 195 80, 185 95
-         C 170 115, 135 115, 110 105
-         C 90 97, 70 96, 50 100
-         C 40 102, 32 100, 25 95" />
+      d="M 25 95 C 15 80, 15 60, 35 50 C 70 35, 140 35, 175 50 C 195 60, 195 80, 185 95 C 170 115, 135 115, 110 105 C 90 97, 70 96, 50 100 C 40 102, 32 100, 25 95" />
   </svg>
 
-  <!-- RIGHT PETAL = RECEIVER -->
-  <svg id="right" class="invine-svg" viewBox="0 0 210 140">
+  <!-- RIGHT = RECEIVER -->
+  <svg class="invine-svg mirror" viewBox="0 0 210 140">
     <path class="invine-loop"
-      d="M 25 95
-         C 15 80, 15 60, 35 50
-         C 70 35, 140 35, 175 50
-         C 195 60, 195 80, 185 95
-         C 170 115, 135 115, 110 105
-         C 90 97, 70 96, 50 100
-         C 40 102, 32 100, 25 95" />
+      d="M 25 95 C 15 80, 15 60, 35 50 C 70 35, 140 35, 175 50 C 195 60, 195 80, 185 95 C 170 115, 135 115, 110 105 C 90 97, 70 96, 50 100 C 40 102, 32 100, 25 95" />
   </svg>
-
 </div>
 
-<!-- POPUP (RECEIVER VIEW) -->
-<div id="popup">
-  <div id="popup-box">
-    <input id="popup-input" type="text" readonly />
-    <button id="close-btn">Close</button>
-  </div>
+<!-- SENDER UI (moved UP so you can see both) -->
+<div id="sender-container">
+  <input id="sender-input" type="text" placeholder="Type message..." />
 </div>
+
+<!-- LIVE RECEIVER OUTPUT -->
+<div id="receiver-live"></div>
 
 <script>
-  let savedMessage = "";
-
   const left = document.getElementById("left");
-  const right = document.getElementById("right");
-  const popup = document.getElementById("popup");
-  const popupInput = document.getElementById("popup-input");
-  const closeBtn = document.getElementById("close-btn");
+  const senderUI = document.getElementById("sender-container");
+  const senderInput = document.getElementById("sender-input");
+  const receiverText = document.getElementById("receiver-live");
 
-  // LEFT = SEND (TYPE)
+  /* TAP LEFT → open typing UI */
   left.onclick = () => {
-    const msg = prompt("Send a message through Invine:");
-    if (msg !== null) savedMessage = msg;
+    senderUI.style.display = "flex";
+    senderInput.focus();
   };
 
-  // RIGHT = RECEIVE (VIEW ONLY)
-  right.onclick = () => {
-    popupInput.value = savedMessage;
-    popup.style.display = "flex";
+  /* LIVE MIRROR TYPING → receiver updates instantly */
+  senderInput.oninput = () => {
+    receiverText.textContent = senderInput.value;
   };
 
-  closeBtn.onclick = () => popup.style.display = "none";
-
-  popup.onclick = (e) => {
-    if (e.target === popup) popup.style.display = "none";
-  };
-
-  // RANDOM LEAF CURVE (15–30% variation per page load)
+  /* RANDOM LEAF CURVE (15–30% variation per page load) */
   (function randomizeLeafShape() {
-    // pick a delta between 0.15 and 0.30, random sign
     const base = 0.15 + Math.random() * 0.15; // 0.15–0.30
     const sign = Math.random() < 0.5 ? -1 : 1;
     const delta = base * sign;
-    const factorY = 1 + delta; // vertical scale e.g. 0.7–0.85 or 1.15–1.30
+    const factorY = 1 + delta;
 
     const leftSvg = document.getElementById("left");
-    const rightSvg = document.getElementById("right");
+    const rightSvg = document.querySelector(".mirror");
 
-    // center transform so it feels organic, not stretched from corner
     leftSvg.style.transformOrigin = "50% 50%";
     rightSvg.style.transformOrigin = "50% 50%";
 
-    // left: normal, right: mirrored on X, both with same Y distortion
     leftSvg.style.transform = `scale(1, ${factorY})`;
     rightSvg.style.transform = `scale(-1, ${factorY})`;
   })();
