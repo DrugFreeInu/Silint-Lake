@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>Invine – Blind Leaf Messaging</title>
+<title>Invine – First Number Blind Leaf</title>
 
 <style>
   body {
@@ -11,7 +11,6 @@
     height: 100vh;
     background: #05070b;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     color: white;
@@ -22,13 +21,6 @@
   .leaf-container {
     position: absolute;
     touch-action: none;
-  }
-
-  .row {
-    display: flex;
-    gap: 20px;
-    position: relative;
-    margin-bottom: 20px;
   }
 
   svg {
@@ -75,7 +67,7 @@
 </head>
 <body>
 
-<!-- LEFT LEAF (draggable container) -->
+<!-- LEFT LEAF -->
 <div id="leftContainer" class="leaf-container" style="top:40%; left:25%;">
   <svg id="leftLeaf" viewBox="0 0 210 140">
     <path class="loop"
@@ -88,7 +80,7 @@
   </svg>
 </div>
 
-<!-- RIGHT LEAF (draggable container) -->
+<!-- RIGHT LEAF -->
 <div id="rightContainer" class="leaf-container" style="top:40%; left:55%;">
   <svg class="mirror" viewBox="0 0 210 140">
     <path class="loop"
@@ -111,27 +103,27 @@
 
   const leftLeaf = document.getElementById("leftLeaf");
   const leftContainer = document.getElementById("leftContainer");
-
   const rightContainer = document.getElementById("rightContainer");
 
   /* -------------------------------
-       BLIND TYPING LOGIC
+       BLIND TYPING + FIRST NUMBER RULE
   --------------------------------*/
   let tapTimeout = null;
   let isDragging = false;
+  let firstCharTyped = false;
 
   leftLeaf.addEventListener("touchstart", (e) => {
     isDragging = false;
     tapTimeout = setTimeout(() => {
-      isDragging = true; // Long hold triggers drag
-    }, 150); // 150ms hold = drag
+      isDragging = true;
+    }, 150);
   });
 
   leftLeaf.addEventListener("touchend", (e) => {
     clearTimeout(tapTimeout);
 
     if (!isDragging) {
-      hiddenInput.focus(); // Tap → type
+      hiddenInput.focus();
     }
   });
 
@@ -140,12 +132,26 @@
     if (blocked.includes(e.key)) e.preventDefault();
   });
 
-  hiddenInput.addEventListener("input", () => {
-    receiverWindow.textContent = hiddenInput.value;
+  hiddenInput.addEventListener("input", (e) => {
+    const value = hiddenInput.value;
+
+    // enforce first character is number and hide it
+    if (!firstCharTyped) {
+      const firstChar = value.charAt(0);
+      if (/[0-9]/.test(firstChar)) {
+        firstCharTyped = true;
+        hiddenInput.value = value.slice(1); // remove the number from visible text
+        receiverWindow.textContent = hiddenInput.value;
+      } else {
+        hiddenInput.value = ""; // reset if first char is not number
+      }
+    } else {
+      receiverWindow.textContent = value;
+    }
   });
 
   /* -------------------------------
-       DRAG LOGIC (LEAF MOVEMENT)
+       DRAG LOGIC
   --------------------------------*/
   function addDragBehavior(container) {
     let offsetX = 0, offsetY = 0;
@@ -154,13 +160,10 @@
       const touch = e.touches[0];
       offsetX = touch.clientX - container.offsetLeft;
       offsetY = touch.clientY - container.offsetTop;
-
-      // dragging only if long-press detected
     });
 
     container.addEventListener("touchmove", (e) => {
-      if (!isDragging) return; // Only move if long hold activated
-
+      if (!isDragging) return;
       const touch = e.touches[0];
       container.style.left = (touch.clientX - offsetX) + "px";
       container.style.top = (touch.clientY - offsetY) + "px";
