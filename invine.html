@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>Invine – Blind Type</title>
+<title>Invine – Blind Leaf Messaging</title>
 
 <style>
   body {
@@ -22,13 +22,14 @@
     display: flex;
     gap: 20px;
     position: relative;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
   }
 
   svg {
     width: 210px;
     height: 140px;
     cursor: pointer;
+    position: relative;
   }
 
   .loop {
@@ -47,73 +48,94 @@
     pointer-events: none;
   }
 
-  #receiverOutput {
-    font-size: 18px;
-    letter-spacing: 0.7px;
-    min-height: 24px;
-    max-width: 90vw;
-    text-align: center;
+  /* RECEIVER WINDOW INSIDE LEAF */
+  .receiver-window {
+    position: absolute;
+    width: 120px;
+    height: 60px;
+    top: 40px;
+    right: 33px; /* positioned inside the right leaf */
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(4px);
+    padding: 6px;
+    font-size: 13px;
+    line-height: 1.35;
+    overflow-wrap: break-word;
+    border-radius: 8px;
+    pointer-events: none;
+    text-align: left;
   }
 </style>
 </head>
 <body>
 
 <div class="row">
-  <!-- LEFT LEAF (SENDER – blind typing) -->
+
+  <!-- LEFT LEAF (sender) -->
   <svg id="leftLeaf" viewBox="0 0 210 140">
     <path class="loop"
-      d="M 25 95 C 15 80, 15 60, 35 50 C 70 35, 140 35, 175 50 C 195 60, 195 80, 185 95 
-      C 170 115, 135 115, 110 105 C 90 97, 70 96, 50 100 C 40 102, 32 100, 25 95" />
+      d="M 25 95 C 15 80, 15 60, 35 50 
+      C 70 35, 140 35, 175 50 
+      C 195 60, 195 80, 185 95 
+      C 170 115, 135 115, 110 105 
+      C 90 97, 70 96, 50 100 
+      C 40 102, 32 100, 25 95" />
   </svg>
 
-  <!-- RIGHT LEAF (RECEIVER – live output) -->
-  <svg viewBox="0 0 210 140" class="mirror">
-    <path class="loop"
-      d="M 25 95 C 15 80, 15 60, 35 50 C 70 35, 140 35, 175 50 C 195 60, 195 80, 185 95 
-      C 170 115, 135 115, 110 105 C 90 97, 70 96, 50 100 C 40 102, 32 100, 25 95" />
-  </svg>
+  <!-- RIGHT LEAF + window -->
+  <div style="position:relative;">
+    <svg class="mirror" viewBox="0 0 210 140">
+      <path class="loop"
+        d="M 25 95 C 15 80, 15 60, 35 50 
+        C 70 35, 140 35, 175 50 
+        C 195 60, 195 80, 185 95 
+        C 170 115, 135 115, 110 105 
+        C 90 97, 70 96, 50 100 
+        C 40 102, 32 100, 25 95" />
+    </svg>
+
+    <!-- RECEIVER WINDOW INSIDE LEAF -->
+    <div id="receiverWindow" class="receiver-window"></div>
+  </div>
+
 </div>
 
-<!-- Invisible typing field -->
+<!-- invisible typing input -->
 <input id="hiddenInput" type="text" autocapitalize="off" autocomplete="off" autocorrect="off" />
-
-<!-- Right leaf live text -->
-<div id="receiverOutput"></div>
 
 <script>
   const hiddenInput = document.getElementById("hiddenInput");
   const leftLeaf = document.getElementById("leftLeaf");
-  const receiverOutput = document.getElementById("receiverOutput");
+  const receiverWindow = document.getElementById("receiverWindow");
 
-  // Tap left leaf → enable blind typing
+  /* tap left → start blind typing */
   leftLeaf.onclick = () => {
     hiddenInput.focus();
   };
 
-  // Prevent backspace, delete, arrows, etc.
+  /* no backspace / no navigation */
   hiddenInput.addEventListener("keydown", (e) => {
-    const blockedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
-    if (blockedKeys.includes(e.key)) {
-      e.preventDefault();
-    }
+    const blocked = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+    if (blocked.includes(e.key)) e.preventDefault();
   });
 
-  // Live output to receiver
+  /* live inside-window receiver update */
   hiddenInput.addEventListener("input", () => {
-    receiverOutput.textContent = hiddenInput.value;
+    receiverWindow.textContent = hiddenInput.value;
   });
 
-  // Random leaf variation (15–30% variance)
+  /* random leaf variation 15–30% */
   (function randomizeLeaves() {
-    const delta = 0.15 + Math.random() * 0.15;  // 15–30%
-    const mirrorScale = 1 + (Math.random() < 0.5 ? -delta : delta);
+    const delta = 0.15 + Math.random() * 0.15;
+    const scaleY = 1 + (Math.random() < 0.5 ? -delta : delta);
 
     leftLeaf.style.transformOrigin = "50% 50%";
-    leftLeaf.style.transform = `scale(1, ${mirrorScale})`;
+    leftLeaf.style.transform = `scale(1, ${scaleY})`;
 
     const rightLeaf = document.querySelector(".mirror");
     rightLeaf.style.transformOrigin = "50% 50%";
-    rightLeaf.style.transform = `scale(-1, ${mirrorScale})`;
+    rightLeaf.style.transform = `scale(-1, ${scaleY})`;
   })();
 </script>
 
