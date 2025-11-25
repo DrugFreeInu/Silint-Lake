@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>DFI WATER</title>
+
+<style>
+  /* ——————————————————————————
+     WATER LAYER (Silint Lake Style)
+     —————————————————————————— */
+
+  body {
+    margin: 0;
+    height: 100vh;
+    background: #000;
+    overflow: hidden;
+  }
+
+  #water {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(#001421, #003d63, #0076a3, #00b7d4);
+    filter: brightness(1.1);
+    animation: shift 14s ease-in-out infinite alternate;
+    overflow: hidden;
+  }
+
+  /* Subtle movement of the water gradient */
+  @keyframes shift {
+    0% { filter: brightness(1.1) saturate(1); }
+    100% { filter: brightness(1.25) saturate(1.25); }
+  }
+
+  /* Ripples (infinite, gentle, ambient) */
+  .ripple {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.10);
+    transform: translate(-50%, -50%) scale(0.3);
+    animation: ripple 6s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes ripple {
+    0% {
+      opacity: 0.7;
+      transform: translate(-50%, -50%) scale(0.3);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(3.5);
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div id="water"></div>
+
+<script>
+  // Ambient ripples — calm, soft, natural
+  setInterval(() => {
+    const r = document.createElement("div");
+    r.className = "ripple";
+    r.style.left = Math.random() * 100 + "%";
+    r.style.top = Math.random() * 100 + "%";
+    document.getElementById("water").appendChild(r);
+    setTimeout(() => r.remove(), 6000);
+  }, 700);
+</script>
+
+</body>
+</html>
