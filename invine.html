@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>Invine – Right Leaf Duplication Test</title>
+<title>Invine – First Number Blind Leaf</title>
 
 <style>
   body {
@@ -80,24 +80,38 @@
   </svg>
 </div>
 
-<!-- RIGHT LEAVES CONTAINER -->
-<div id="rightLeavesContainer"></div>
+<!-- RIGHT LEAF -->
+<div id="rightContainer" class="leaf-container" style="top:40%; left:55%;">
+  <svg class="mirror" viewBox="0 0 210 140">
+    <path class="loop"
+      d="M 25 95 C 15 80, 15 60, 35 50 
+      C 70 35, 140 35, 175 50 
+      C 195 60, 195 80, 185 95 
+      C 170 115, 135 115, 110 105 
+      C 90 97, 70 96, 50 100 
+      C 40 102, 32 100, 25 95" />
+  </svg>
+
+  <div id="receiverWindow" class="receiver-window"></div>
+</div>
 
 <input id="hiddenInput" type="text" autocapitalize="off" autocomplete="off" autocorrect="off" />
 
 <script>
   const hiddenInput = document.getElementById("hiddenInput");
+  const receiverWindow = document.getElementById("receiverWindow");
+
   const leftLeaf = document.getElementById("leftLeaf");
   const leftContainer = document.getElementById("leftContainer");
-  const rightLeavesContainer = document.getElementById("rightLeavesContainer");
-
-  let tapTimeout = null;
-  let isDragging = false;
-  let firstCharTyped = false;
+  const rightContainer = document.getElementById("rightContainer");
 
   /* -------------------------------
        BLIND TYPING + FIRST NUMBER RULE
   --------------------------------*/
+  let tapTimeout = null;
+  let isDragging = false;
+  let firstCharTyped = false;
+
   leftLeaf.addEventListener("touchstart", (e) => {
     isDragging = false;
     tapTimeout = setTimeout(() => {
@@ -121,48 +135,20 @@
   hiddenInput.addEventListener("input", (e) => {
     const value = hiddenInput.value;
 
+    // enforce first character is number and hide it
     if (!firstCharTyped) {
       const firstChar = value.charAt(0);
       if (/[0-9]/.test(firstChar)) {
         firstCharTyped = true;
-        hiddenInput.value = value.slice(1); // remove number from visible text
-        spawnRightLeaves(parseInt(firstChar));
+        hiddenInput.value = value.slice(1); // remove the number from visible text
+        receiverWindow.textContent = hiddenInput.value;
       } else {
-        hiddenInput.value = "";
+        hiddenInput.value = ""; // reset if first char is not number
       }
+    } else {
+      receiverWindow.textContent = value;
     }
   });
-
-  /* -------------------------------
-       SPAWN RIGHT LEAVES
-  --------------------------------*/
-  function spawnRightLeaves(count) {
-    rightLeavesContainer.innerHTML = ""; // clear previous leaves
-    if (count === 0) return;
-
-    for (let i = 0; i < count; i++) {
-      const container = document.createElement("div");
-      container.className = "leaf-container";
-      container.style.top = `${40 + i*10}px`;
-      container.style.left = `${55 + i*12}px`;
-
-      container.innerHTML = `
-        <svg class="mirror" viewBox="0 0 210 140">
-          <path class="loop"
-            d="M 25 95 C 15 80, 15 60, 35 50 
-            C 70 35, 140 35, 175 50 
-            C 195 60, 195 80, 185 95 
-            C 170 115, 135 115, 110 105 
-            C 90 97, 70 96, 50 100 
-            C 40 102, 32 100, 25 95" />
-        </svg>
-        <div class="receiver-window"></div>
-      `;
-
-      addDragBehavior(container);
-      rightLeavesContainer.appendChild(container);
-    }
-  }
 
   /* -------------------------------
        DRAG LOGIC
@@ -184,6 +170,9 @@
     });
   }
 
+  addDragBehavior(leftContainer);
+  addDragBehavior(rightContainer);
+
   /* -------------------------------
       RANDOM LEAF VARIATION
   --------------------------------*/
@@ -193,6 +182,10 @@
 
     leftLeaf.style.transformOrigin = "50% 50%";
     leftLeaf.style.transform = `scale(1, ${scaleY})`;
+
+    const rightLeaf = document.querySelector(".mirror");
+    rightLeaf.style.transformOrigin = "50% 50%";
+    rightLeaf.style.transform = `scale(-1, ${scaleY})`;
   })();
 </script>
 
