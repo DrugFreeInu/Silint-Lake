@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>INVINE COMM DEVICE</title>
+<title>INVINE · Sender / Receiver</title>
 
 <style>
   body {
@@ -27,6 +27,7 @@
   .invine-svg {
     width: 210px;
     height: 140px;
+    cursor: pointer;
   }
 
   .invine-loop {
@@ -86,15 +87,6 @@
     background: #444;
     color: #fff;
   }
-
-  #receiver-text {
-    color: #fff;
-    margin-top: 20px;
-    text-align: center;
-    min-height: 20px;
-    font-size: 14px;
-    letter-spacing: 0.5px;
-  }
 </style>
 </head>
 <body>
@@ -103,47 +95,50 @@
 
   <div class="stem"></div>
 
-  <!-- LEFT = SENDER -->
-  <svg id="left" class="invine-svg" viewBox="0 0 210 140" style="cursor:pointer;">
+  <!-- LEFT PETAL = SENDER -->
+  <svg id="left" class="invine-svg" viewBox="0 0 210 140">
     <path class="invine-loop"
       d="M 25 95 C 15 80, 15 60, 35 50 C 70 35, 140 35, 175 50 C 195 60, 195 80, 185 95 C 170 115, 135 115, 110 105 C 90 97, 70 96, 50 100 C 40 102, 32 100, 25 95" />
   </svg>
 
-  <!-- RIGHT = RECEIVER -->
-  <svg class="invine-svg mirror" viewBox="0 0 210 140">
+  <!-- RIGHT PETAL = RECEIVER -->
+  <svg id="right" class="invine-svg mirror" viewBox="0 0 210 140">
     <path class="invine-loop"
       d="M 25 95 C 15 80, 15 60, 35 50 C 70 35, 140 35, 175 50 C 195 60, 195 80, 185 95 C 170 115, 135 115, 110 105 C 90 97, 70 96, 50 100 C 40 102, 32 100, 25 95" />
   </svg>
 
 </div>
-
-<div id="receiver-text"></div>
 
 <!-- POPUP -->
 <div id="popup">
   <div id="popup-box">
-    <input id="message-input" type="text" placeholder="Type message..." />
-    <button id="send-btn">Send</button>
+    <input id="popup-input" type="text" readonly />
+    <button id="close-btn">Close</button>
   </div>
 </div>
 
 <script>
-  const sender = document.getElementById("left");
+  let savedMessage = "";
+
+  const left = document.getElementById("left");
+  const right = document.getElementById("right");
   const popup = document.getElementById("popup");
-  const sendBtn = document.getElementById("send-btn");
-  const input = document.getElementById("message-input");
-  const receiverText = document.getElementById("receiver-text");
+  const popupInput = document.getElementById("popup-input");
+  const closeBtn = document.getElementById("close-btn");
 
-  sender.onclick = () => {
+  /* LEFT = TYPE MESSAGE */
+  left.onclick = () => {
+    const msg = prompt("Send a message through Invine:");
+    if (msg !== null) savedMessage = msg;
+  };
+
+  /* RIGHT = SHOW MESSAGE */
+  right.onclick = () => {
+    popupInput.value = savedMessage;
     popup.style.display = "flex";
-    input.focus();
   };
 
-  sendBtn.onclick = () => {
-    receiverText.textContent = input.value;
-    input.value = "";
-    popup.style.display = "none";
-  };
+  closeBtn.onclick = () => popup.style.display = "none";
 
   popup.onclick = (e) => {
     if (e.target === popup) popup.style.display = "none";
