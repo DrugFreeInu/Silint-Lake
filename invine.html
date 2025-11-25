@@ -16,6 +16,12 @@
     align-items: center;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+  }
+
+  .leaf-container {
+    position: absolute;
+    touch-action: none;
   }
 
   .row {
@@ -48,13 +54,12 @@
     pointer-events: none;
   }
 
-  /* RECEIVER WINDOW INSIDE LEAF */
   .receiver-window {
     position: absolute;
     width: 120px;
     height: 60px;
     top: 40px;
-    right: 33px; /* positioned inside the right leaf */
+    left: 45px;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.25);
     backdrop-filter: blur(4px);
@@ -70,9 +75,8 @@
 </head>
 <body>
 
-<div class="row">
-
-  <!-- LEFT LEAF (sender) -->
+<!-- LEFT LEAF (draggable container) -->
+<div id="leftContainer" class="leaf-container" style="top:40%; left:25%;">
   <svg id="leftLeaf" viewBox="0 0 210 140">
     <path class="loop"
       d="M 25 95 C 15 80, 15 60, 35 50 
@@ -82,50 +86,93 @@
       C 90 97, 70 96, 50 100 
       C 40 102, 32 100, 25 95" />
   </svg>
-
-  <!-- RIGHT LEAF + window -->
-  <div style="position:relative;">
-    <svg class="mirror" viewBox="0 0 210 140">
-      <path class="loop"
-        d="M 25 95 C 15 80, 15 60, 35 50 
-        C 70 35, 140 35, 175 50 
-        C 195 60, 195 80, 185 95 
-        C 170 115, 135 115, 110 105 
-        C 90 97, 70 96, 50 100 
-        C 40 102, 32 100, 25 95" />
-    </svg>
-
-    <!-- RECEIVER WINDOW INSIDE LEAF -->
-    <div id="receiverWindow" class="receiver-window"></div>
-  </div>
-
 </div>
 
-<!-- invisible typing input -->
+<!-- RIGHT LEAF (draggable container) -->
+<div id="rightContainer" class="leaf-container" style="top:40%; left:55%;">
+  <svg class="mirror" viewBox="0 0 210 140">
+    <path class="loop"
+      d="M 25 95 C 15 80, 15 60, 35 50 
+      C 70 35, 140 35, 175 50 
+      C 195 60, 195 80, 185 95 
+      C 170 115, 135 115, 110 105 
+      C 90 97, 70 96, 50 100 
+      C 40 102, 32 100, 25 95" />
+  </svg>
+
+  <div id="receiverWindow" class="receiver-window"></div>
+</div>
+
 <input id="hiddenInput" type="text" autocapitalize="off" autocomplete="off" autocorrect="off" />
 
 <script>
   const hiddenInput = document.getElementById("hiddenInput");
-  const leftLeaf = document.getElementById("leftLeaf");
   const receiverWindow = document.getElementById("receiverWindow");
 
-  /* tap left → start blind typing */
-  leftLeaf.onclick = () => {
-    hiddenInput.focus();
-  };
+  const leftLeaf = document.getElementById("leftLeaf");
+  const leftContainer = document.getElementById("leftContainer");
 
-  /* no backspace / no navigation */
+  const rightContainer = document.getElementById("rightContainer");
+
+  /* -------------------------------
+       BLIND TYPING LOGIC
+  --------------------------------*/
+  let tapTimeout = null;
+  let isDragging = false;
+
+  leftLeaf.addEventListener("touchstart", (e) => {
+    isDragging = false;
+    tapTimeout = setTimeout(() => {
+      isDragging = true; // Long hold triggers drag
+    }, 150); // 150ms hold = drag
+  });
+
+  leftLeaf.addEventListener("touchend", (e) => {
+    clearTimeout(tapTimeout);
+
+    if (!isDragging) {
+      hiddenInput.focus(); // Tap → type
+    }
+  });
+
   hiddenInput.addEventListener("keydown", (e) => {
     const blocked = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
     if (blocked.includes(e.key)) e.preventDefault();
   });
 
-  /* live inside-window receiver update */
   hiddenInput.addEventListener("input", () => {
     receiverWindow.textContent = hiddenInput.value;
   });
 
-  /* random leaf variation 15–30% */
+  /* -------------------------------
+       DRAG LOGIC (LEAF MOVEMENT)
+  --------------------------------*/
+  function addDragBehavior(container) {
+    let offsetX = 0, offsetY = 0;
+
+    container.addEventListener("touchstart", (e) => {
+      const touch = e.touches[0];
+      offsetX = touch.clientX - container.offsetLeft;
+      offsetY = touch.clientY - container.offsetTop;
+
+      // dragging only if long-press detected
+    });
+
+    container.addEventListener("touchmove", (e) => {
+      if (!isDragging) return; // Only move if long hold activated
+
+      const touch = e.touches[0];
+      container.style.left = (touch.clientX - offsetX) + "px";
+      container.style.top = (touch.clientY - offsetY) + "px";
+    });
+  }
+
+  addDragBehavior(leftContainer);
+  addDragBehavior(rightContainer);
+
+  /* -------------------------------
+      RANDOM LEAF VARIATION
+  --------------------------------*/
   (function randomizeLeaves() {
     const delta = 0.15 + Math.random() * 0.15;
     const scaleY = 1 + (Math.random() < 0.5 ? -delta : delta);
